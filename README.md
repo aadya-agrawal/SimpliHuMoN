@@ -11,9 +11,9 @@ SimpliHuMoN provides a clean, streamlined framework for training and evaluating 
 - **PoseTrajModel**: Jointly predicts both pose and trajectory
 
 ## Features
-
+ 
 - **Three Model Types**: Specialized architectures for different prediction tasks
-- **Multiple Datasets**: Support for H3.6M, ETH-UCY, SDD, Mocap UMPM, and 3DPW datasets
+- **Multiple Datasets**: Support for H3.6M, ETH-UCY, SDD, Mocap UMPM, AMASS and 3DPW datasets
 - **Multimodal Prediction**: Generate multiple plausible future motion sequences
 - **Data Augmentation**: On-the-fly augmentations for improved generalization
 - **Comprehensive Metrics**: APE/JPE for pose models, ADE/FDE for trajectory models
@@ -36,6 +36,10 @@ pip install pytorch-lightning
 pip install torch-geometric
 pip install numpy
 ```
+
+### Checkpoints
+
+Pre-trained models will be made available soon.
 
 ## Project Structure
 
@@ -133,22 +137,20 @@ python train.py \
 
 ### Supported Datasets
 
-1. **H3.6M**: Human 3.6M dataset for pose prediction
-   - 16 joints, 25 input frames, 100 output frames
+1. **H3.6M/AMASS**: Dataset for pose prediction
+   - 25 input frames, 100 output frames
    - Single person sequences
+   - Raw files downloading and preprocessing according to [BeLFusion](https://github.com/BarqueroGerman/BeLFusion)
 
 2. **ETH-UCY/SDD**: Pedestrian trajectory datasets
-   - 1 joint, 8 input frames, 12 output frames
+   - 8 input frames, 12 output frames
    - Multiple pedestrians per scene
+   - Preprocessed data available at [NMRF](https://github.com/AdaCompNUS/NMRF_TrajectoryPrediction)
 
-3. **Mocap-UMPM**: Multi-person motion capture
-   - 15 joints, 25 input frames, 50 output frames
-   - 3 people per scene
-
-4. **3DPW**: 3D Pose in the Wild dataset
-   - Similar to Mocap UMPM but with 2 people per scene
-
-5. **AMASS**: TBD
+3. **Mocap-UMPM/3DPW**: Multi-person interaction datasets
+   - 25 input frames, 50 output frames
+   - 2-3 people per scene
+   - Raw files downloading and preprocessing according to [T2P](https://github.com/jaewoo97/t2p) 
 
 ## Hardware Requirements
 
@@ -156,7 +158,7 @@ python train.py \
 - **RAM**: 16GB+ recommended
 - **Storage**: Varies by dataset (H3.6M ~2GB, Mocap UMPM ~10GB)
 
-## Citation
+<!-- ## Citation
 
 If you use this code in your research, please cite:
 
@@ -168,4 +170,4 @@ If you use this code in your research, please cite:
   howpublished={GitHub repository},
   url={https://github.com/yourusername/SimpliHuMoN}
 }
-```
+``` -->
