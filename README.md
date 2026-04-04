@@ -2,7 +2,7 @@
 
 A simplified implementation for human motion prediction supporting three model types: pose prediction, trajectory prediction, and combined pose+trajectory prediction.
 
-<video src="assets/demo.mp4" controls width="100%"></video>
+<video src="https://github.com/aadya-agrawal/SimpliHuMoN/raw/main/assets/demo.mp4" controls width="100%"></video>
 
 ## Overview
 
