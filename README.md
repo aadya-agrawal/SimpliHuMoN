@@ -2,7 +2,7 @@
 
 A simplified implementation for human motion prediction supporting three model types: pose prediction, trajectory prediction, and combined pose+trajectory prediction.
 
-[demo.mp4](assets/demo.mp4)
+<video src="assets/demo.mp4" controls width="100%"></video>
 
 ## Overview
 
