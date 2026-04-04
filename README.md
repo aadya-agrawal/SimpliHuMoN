@@ -2,6 +2,8 @@
 
 A simplified implementation for human motion prediction supporting three model types: pose prediction, trajectory prediction, and combined pose+trajectory prediction.
 
+[demo.mp4](assets/demo.mp4)
+
 ## Overview
 
 SimpliHuMoN provides a clean, streamlined framework for training and evaluating human motion prediction models. The system supports three distinct model architectures:
@@ -53,6 +55,7 @@ SimpliHuMoN/
 ├── pose_training.sh          # Pose model training script
 ├── traj_training.sh          # Trajectory model training script
 └── posetraj_training.sh      # Combined model training script
+└── worldpose_processor.py    # Processing script for worldpose data
 ```
 
 ## Model Architectures
