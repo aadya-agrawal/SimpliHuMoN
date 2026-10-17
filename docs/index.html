@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="SimpliHuMoN is a simple, unified transformer for pose, trajectory, and holistic human motion prediction.">
+  <meta property="og:title" content="SimpliHuMoN: Simplifying Human Motion Prediction">
+  <meta property="og:description" content="A simple, unified transformer for human motion prediction.">
+  <meta property="og:image" content="assets/images/mocap_qual.png">
+  <title>SimpliHuMoN | Simplifying Human Motion Prediction</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <main>
+    <section class="hero" id="top">
+      <div class="hero-content">
+        <h1>SimpliHuMoN: Simplifying Human Motion Prediction</h1>
+        <p class="authors">Aadya Agrawal <span>and</span> Alexander Schwing</p>
+        <p class="affiliation">University of Illinois Urbana-Champaign</p>
+        <div class="hero-links" aria-label="Project resources">
+          <a class="button button-primary" href="https://arxiv.org/abs/2603.04399" target="_blank" rel="noreferrer">
+            <i data-lucide="file-text" aria-hidden="true"></i> Paper
+          </a>
+          <a class="button button-secondary" href="https://github.com/aadya-agrawal/SimpliHuMoN" target="_blank" rel="noreferrer">
+            <i data-lucide="github" aria-hidden="true"></i> Code
+          </a>
+          <a class="button button-secondary" href="https://github.com/aadya-agrawal/SimpliHuMoN/releases/tag/v1.0-checkpoints" target="_blank" rel="noreferrer">
+            <i data-lucide="package" aria-hidden="true"></i> Checkpoints
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="overview section" id="overview">
+      <div class="section-label">Overview</div>
+      <div class="overview-grid">
+        <h2>One architecture for every motion task.</h2>
+        <div class="abstract">
+          <p>Human motion prediction spans pose forecasting, trajectory forecasting, and their joint prediction. Existing approaches often solve each task with specialized machinery.</p>
+          <p>SimpliHuMoN uses one streamlined, end-to-end transformer across all three settings. Past pose and trajectory tokens attend jointly with learnable future queries, producing multiple complete and plausible motion hypotheses in a single forward pass.</p>
+        </div>
+      </div>
+      <div class="task-strip" aria-label="Supported prediction tasks">
+        <div><span>01</span><strong>Pose</strong><small>Relative body articulation</small></div>
+        <div><span>02</span><strong>Trajectory</strong><small>Global root movement</small></div>
+        <div><span>03</span><strong>Pose + trajectory</strong><small>Holistic 3D motion</small></div>
+      </div>
+    </section>
+
+    <section class="method section" id="method">
+      <div class="section-heading">
+        <div>
+          <div class="section-label">Method</div>
+          <h2>A unified sequence of context and queries</h2>
+        </div>
+        <p>Trajectory and root-relative pose are embedded as distinct token streams. Learnable future queries join the historical context inside a shared self-attention stack, then lightweight heads produce <em>K</em> future proposals.</p>
+      </div>
+      <figure class="paper-figure architecture-figure">
+        <img src="assets/images/model_architecture.png" alt="SimpliHuMoN architecture: pose and trajectory context and future queries pass through a transformer to generate K proposals." width="3258" height="891">
+        <figcaption>Past motion and learnable future queries share one attention pathway, pairing a task-agnostic backbone with direct prediction.</figcaption>
+      </figure>
+    </section>
+
+    <section class="results section" id="results">
+      <div class="section-heading">
+        <div>
+          <div class="section-label">Results</div>
+          <h2>Simple, accurate, and fast</h2>
+        </div>
+        <p>Across pose-only, trajectory-only, and combined benchmarks, the same architecture competes with specialized systems while retaining a small, parallel design.</p>
+      </div>
+      <div class="metrics" aria-label="Selected MOCAP-UMPM results">
+        <article class="metric metric-coral">
+          <span class="metric-value">125.70</span>
+          <span class="metric-name">APE ↓</span>
+          <p>Wide model on MOCAP-UMPM</p>
+        </article>
+        <article class="metric metric-blue">
+          <span class="metric-value">211.76</span>
+          <span class="metric-name">JPE ↓</span>
+          <p>Deep model on MOCAP-UMPM</p>
+        </article>
+        <article class="metric metric-green">
+          <span class="metric-value">3,673</span>
+          <span class="metric-name">samples/s ↑</span>
+          <p>Deep-model test throughput</p>
+        </article>
+      </div>
+      <figure class="paper-figure qualitative-figure">
+        <img src="assets/images/mocap_qual.png" alt="MOCAP-UMPM qualitative comparison over a two-second prediction horizon." width="2343" height="1020" loading="lazy">
+        <figcaption>MOCAP-UMPM predictions over a 2.0 s horizon. Colored solid poses are predictions; black dashed poses are ground truth.</figcaption>
+      </figure>
+    </section>
+
+    <section class="visuals section" id="visuals">
+      <div class="section-heading visuals-heading">
+        <div>
+          <div class="section-label">Qualitative comparison</div>
+          <h2>Motion across the full horizon</h2>
+        </div>
+        <p>Compare complete predicted sequences from T2P, EMPMP, and both SimpliHuMoN configurations on MOCAP-UMPM.</p>
+      </div>
+
+      <div class="visual-controls">
+        <div class="sequence-control">
+          <span>Sequence</span>
+          <div class="segmented" role="group" aria-label="Select MOCAP-UMPM sequence">
+            <button type="button" class="sample-button active" data-sample="1" aria-label="Sequence 1" aria-pressed="true">01</button>
+            <button type="button" class="sample-button" data-sample="2" aria-label="Sequence 2" aria-pressed="false">02</button>
+            <button type="button" class="sample-button" data-sample="3" aria-label="Sequence 3" aria-pressed="false">03</button>
+            <button type="button" class="sample-button" data-sample="4" aria-label="Sequence 4" aria-pressed="false">04</button>
+            <button type="button" class="sample-button" data-sample="5" aria-label="Sequence 5" aria-pressed="false">05</button>
+            <button type="button" class="sample-button" data-sample="6" aria-label="Sequence 6" aria-pressed="false">06</button>
+            <button type="button" class="sample-button" data-sample="7" aria-label="Sequence 7" aria-pressed="false">07</button>
+            <button type="button" class="sample-button" data-sample="8" aria-label="Sequence 8" aria-pressed="false">08</button>
+            <button type="button" class="sample-button" data-sample="9" aria-label="Sequence 9" aria-pressed="false">09</button>
+            <button type="button" class="sample-button" data-sample="10" aria-label="Sequence 10" aria-pressed="false">10</button>
+          </div>
+        </div>
+        <button type="button" class="icon-button" id="play-toggle" title="Pause all videos" aria-label="Pause all videos">
+          <i data-lucide="pause" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="video-grid">
+        <article class="video-item">
+          <div class="video-title"><span>Baseline</span><h3>T2P</h3></div>
+          <button class="video-open" type="button" data-model="1" aria-label="Enlarge T2P video">
+            <video muted loop playsinline autoplay preload="metadata"></video>
+            <span><i data-lucide="maximize-2" aria-hidden="true"></i></span>
+          </button>
+        </article>
+        <article class="video-item">
+          <div class="video-title"><span>Baseline</span><h3>EMPMP</h3></div>
+          <button class="video-open" type="button" data-model="2" aria-label="Enlarge EMPMP video">
+            <video muted loop playsinline autoplay preload="metadata"></video>
+            <span><i data-lucide="maximize-2" aria-hidden="true"></i></span>
+          </button>
+        </article>
+        <article class="video-item ours">
+          <div class="video-title"><span>Ours</span><h3>Wide <small>L=6, d=192</small></h3></div>
+          <button class="video-open" type="button" data-model="3" aria-label="Enlarge SimpliHuMoN wide video">
+            <video muted loop playsinline autoplay preload="metadata"></video>
+            <span><i data-lucide="maximize-2" aria-hidden="true"></i></span>
+          </button>
+        </article>
+        <article class="video-item ours">
+          <div class="video-title"><span>Ours</span><h3>Deep <small>L=16, d=48</small></h3></div>
+          <button class="video-open" type="button" data-model="4" aria-label="Enlarge SimpliHuMoN deep video">
+            <video muted loop playsinline autoplay preload="metadata"></video>
+            <span><i data-lucide="maximize-2" aria-hidden="true"></i></span>
+          </button>
+        </article>
+      </div>
+      <p class="legend"><span>Black dashed</span> ground-truth future · <span>Colored dashed</span> last input pose · <span>Colored solid</span> predicted motion</p>
+    </section>
+
+    <section class="citation section" id="citation">
+      <div>
+        <div class="section-label">Citation</div>
+        <h2>Build on SimpliHuMoN</h2>
+        <p>Code and pretrained MOCAP-UMPM checkpoints are publicly available.</p>
+      </div>
+      <div class="citation-code">
+        <button type="button" id="copy-citation" title="Copy BibTeX" aria-label="Copy BibTeX">
+          <i data-lucide="copy" aria-hidden="true"></i>
+        </button>
+        <pre><code id="bibtex">@article{agrawal2026simplihumon,
+  title={SimpliHuMoN: Simplifying Human Motion Prediction},
+  author={Agrawal, Aadya and Schwing, Alexander G.},
+  journal={arXiv preprint arXiv:2603.04399},
+  year={2026}
+}</code></pre>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <a class="wordmark" href="#top">SimpliHuMoN</a>
+    <p>2026</p>
+    <div>
+      <a href="https://arxiv.org/abs/2603.04399">Paper</a>
+      <a href="https://github.com/aadya-agrawal/SimpliHuMoN">GitHub</a>
+    </div>
+  </footer>
+
+  <dialog id="video-dialog" aria-label="Enlarged qualitative result">
+    <button type="button" id="dialog-close" class="dialog-close" aria-label="Close video">
+      <i data-lucide="x" aria-hidden="true"></i>
+    </button>
+    <h3 id="dialog-title"></h3>
+    <video id="dialog-video" muted loop playsinline controls></video>
+  </dialog>
+</body>
+</html>

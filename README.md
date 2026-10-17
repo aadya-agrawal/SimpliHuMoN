@@ -4,8 +4,6 @@
 
 A simplified implementation for human motion prediction supporting three model types: pose prediction, trajectory prediction, and combined pose+trajectory prediction.
 
-<video src="https://github.com/aadya-agrawal/SimpliHuMoN/raw/main/assets/demo.mp4" controls width="100%"></video>
-
 ## Overview
 
 SimpliHuMoN provides a clean, streamlined framework for training and evaluating human motion prediction models. The system supports three distinct model architectures:
@@ -155,7 +153,7 @@ model configuration used during training.
 | `--num_epochs` | Number of training epochs | `100` | Any positive integer |
 | `--on_the_fly_augmentations` | Enable data augmentation | `False` | Flag |
 | `--checkpoint_path` | Checkpoint used for evaluation | None | Path |
-| `--evaluate_only` | Validate a checkpoint without training | `False` | Flag |
+| `--evaluate_only` | Validate a checkpoint directly | `False` | Flag |
 
 ## Datasets
 
