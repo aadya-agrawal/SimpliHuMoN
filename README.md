@@ -1,6 +1,6 @@
 # SimpliHuMoN: Simplified Human Motion Prediction
 
-[Paper](https://arxiv.org/abs/2603.04399)
+[Project page](https://aadya-agrawal.github.io/SimpliHuMoN/) | [Paper](https://arxiv.org/abs/2603.04399) | Accepted at NeurIPS 2026
 
 A simplified implementation for human motion prediction supporting three model types: pose prediction, trajectory prediction, and combined pose+trajectory prediction.
 

@@ -41,6 +41,7 @@ h1 { margin: 0; font-size: 42px; }
 .authors { margin: 24px 0 4px; font-size: 18px; font-weight: 400; }
 .authors span { margin: 0 8px; color: var(--muted); font-weight: 400; }
 .affiliation { margin: 0; color: var(--muted); font-size: 15px; }
+.venue { margin: 4px 0 0; font-size: 15px; font-weight: 600; }
 .hero-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 18px; margin-top: 22px; }
 .button {
   display: inline-flex;
@@ -79,8 +80,7 @@ h1 { margin: 0; font-size: 42px; }
 .task-strip strong { font-size: 17px; }
 .task-strip small { color: var(--muted); }
 
-.method, .visuals { max-width: none; background: var(--white); }
-.method > *, .visuals > * { max-width: var(--max-width); margin-left: auto; margin-right: auto; }
+.method, .visuals { background: var(--white); }
 .section-heading { margin-bottom: 30px; }
 .section-heading > div { margin-bottom: 12px; }
 .section-heading > p { margin: 0; color: var(--muted); }
@@ -128,7 +128,7 @@ h1 { margin: 0; font-size: 42px; }
   cursor: pointer;
 }
 .icon-button svg, .dialog-close svg, #copy-citation svg { width: 18px; }
-.video-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px; }
+.video-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
 .video-item { overflow: hidden; background: var(--white); }
 .video-title { height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .video-title span { color: var(--muted); font-size: 11px; font-weight: 700; text-transform: uppercase; }
@@ -148,7 +148,6 @@ h1 { margin: 0; font-size: 42px; }
 #copy-citation { position: absolute; top: 14px; right: 14px; color: var(--muted); border-color: var(--line); }
 
 footer { min-height: 110px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 24px max(24px, calc((100vw - var(--max-width)) / 2)); color: var(--ink); background: var(--white); border-top: 1px solid var(--line); }
-footer p { color: var(--muted); font-size: 12px; }
 footer div { display: flex; gap: 18px; }
 footer div a { font-size: 12px; font-weight: 700; }
 
