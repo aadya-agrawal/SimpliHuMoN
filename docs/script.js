@@ -6,7 +6,7 @@ const labels = {
   "4": "SimpliHuMoN deep",
 };
 
-let activeSample = samples[0];
+let activeSample = samples[1];
 let videosPlaying = true;
 
 function mediaPath(sample, model) {
