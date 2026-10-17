@@ -82,7 +82,9 @@ class TrainingModule(pl.LightningModule):
                  input_time=25,
                  embed_dim=48,
                  num_modes=6,
-                 decoder_depth=16):
+                 decoder_depth=16,
+                 pose_mlp_hidden_dim=None,
+                 layer_norm_elementwise_affine=False):
         super().__init__()
         
         self.model_type = model_type
@@ -97,7 +99,7 @@ class TrainingModule(pl.LightningModule):
                 num_modes=num_modes,
                 num_joints=num_joints,
                 input_time=input_time,
-                output_time=num_future_steps
+                num_future_steps=num_future_steps
             )
         elif model_type == "trajModel":
             self.net = TrajectoryPredictor(
@@ -105,7 +107,7 @@ class TrainingModule(pl.LightningModule):
                 embed_dim=embed_dim,
                 num_modes=num_modes,
                 input_time=input_time,
-                output_time=num_future_steps
+                num_future_steps=num_future_steps
             )
         elif model_type == "posetrajModel":
             self.net = PoseTrajPredictor(
@@ -113,8 +115,10 @@ class TrainingModule(pl.LightningModule):
                 embed_dim=embed_dim,
                 num_joints=num_joints,
                 input_time=input_time,
-                output_time=num_future_steps,
-                num_modes=num_modes
+                num_future_steps=num_future_steps,
+                num_modes=num_modes,
+                pose_mlp_hidden_dim=pose_mlp_hidden_dim,
+                layer_norm_elementwise_affine=layer_norm_elementwise_affine,
             )
         else:
             raise ValueError(f"Unknown model type: {model_type}")
@@ -130,44 +134,53 @@ class TrainingModule(pl.LightningModule):
     
     def forward(self, data):
         return self.net(data)
+
+    def load_release_state_dict(self, state_dict):
+        renames = {
+            "scale.": "input_proj.",
+            "input_emb.": "inp_enc.",
+            "fut_scale.": "fut_proj.",
+            "output_emb.": "out_enc.",
+            "block.": "layers.",
+            "out.": "output_proj.",
+            "mlp.": "mlp_dec.",
+        }
+        converted = {}
+        for key, value in state_dict.items():
+            new_key = key
+            for old_prefix, new_prefix in renames.items():
+                if key.startswith(old_prefix):
+                    new_key = new_prefix + key[len(old_prefix):]
+                    break
+            converted[new_key] = value
+        self.net.load_state_dict(converted, strict=True)
+
+    def _prepare_target(self, target):
+        if self.model_type != "trajModel" and target.dim() == 3:
+            target = target.reshape(target.shape[0], target.shape[1], -1, 3)
+        return target
+
+    @staticmethod
+    def _best_mode(pred, target):
+        distances = torch.norm(pred - target.unsqueeze(0), dim=-1)
+        mode_errors = distances.flatten(start_dim=2).mean(dim=-1)
+        best_mode = mode_errors.argmin(dim=0)
+        batch_indices = torch.arange(pred.shape[1], device=pred.device)
+        return pred[best_mode, batch_indices]
     
     def training_step(self, batch, batch_idx):
-        pred, _ = self(batch)
-        
-        target = batch['output_seq']
-        
-        if target.dim() == 3:
-            if self.model_type == "trajModel":
-                target = target.unsqueeze(-2)
-            else:
-                target = target.reshape(target.shape[0], target.shape[1], -1, 3)
-        
-        if pred.dim() == 5:  
-            target_expanded = target.unsqueeze(0)  
-            l2 = torch.norm(pred - target_expanded, dim=-1).mean(dim=[-1, -2])
-            min_mode = torch.argmin(l2, dim=0)
-            pred = pred[min_mode, torch.arange(pred.shape[1])]
+        pred = self(batch)
+        target = self._prepare_target(batch['output_seq'])
+        pred = self._best_mode(pred, target)
         
         loss = self.criterion(pred, target)
         self.log("train_loss", loss, prog_bar=True)
         return loss
     
     def validation_step(self, batch, batch_idx):
-        pred, _ = self(batch) 
-        
-        target = batch['output_seq']
-        
-        if target.dim() == 3:
-            if self.model_type == "trajModel":
-                target = target.unsqueeze(-2)
-            else:
-                target = target.reshape(target.shape[0], target.shape[1], -1, 3)
-        
-        if pred.dim() == 5:
-            target_expanded = target.unsqueeze(0)
-            val_loss = torch.norm(pred - target_expanded, dim=-1).mean(dim=[-1, -2, -3]).min(dim=0)[0].mean()
-        else:
-            val_loss = self.criterion(pred, target)
+        pred = self(batch)
+        target = self._prepare_target(batch['output_seq'])
+        val_loss = self.criterion(self._best_mode(pred, target), target)
         
         self.log('val_loss', val_loss, prog_bar=True)
     
@@ -220,8 +233,7 @@ class TrainingModule(pl.LightningModule):
             "optimizer": optimizer,
             "lr_scheduler": {
                 "scheduler": scheduler,
-                "interval": "epoch",
-                "monitor": "val_loss",
+                "interval": "step",
                 "frequency": 1,
             },
         }
@@ -263,6 +275,10 @@ def parse_args():
                        help='Log filename')
     parser.add_argument('--output_dir', type=str, default='output_logs',
                        help='Output directory')
+    parser.add_argument('--checkpoint_path', type=str,
+                       help='Checkpoint to load for evaluation')
+    parser.add_argument('--evaluate_only', action='store_true',
+                       help='Run validation from a checkpoint without training')
     
     parser.add_argument('--seed', type=int, default=42,
                        help='Random seed')
@@ -274,6 +290,21 @@ def main():
     """Main training function."""
     args = parse_args()
     set_seed(args.seed)
+
+    if args.evaluate_only and not args.checkpoint_path:
+        raise ValueError("--checkpoint_path is required with --evaluate_only")
+
+    release_checkpoint = None
+    if args.evaluate_only and args.checkpoint_path.endswith(".pt"):
+        release_checkpoint = torch.load(
+            args.checkpoint_path, map_location="cpu", weights_only=True
+        )
+        config = release_checkpoint["config"]
+        for name in (
+            "model_type", "dataset_name", "num_future_steps", "num_joints",
+            "input_time", "embed_dim", "num_modes", "decoder_depth",
+        ):
+            setattr(args, name, config[name])
     
     os.makedirs(args.output_dir, exist_ok=True)
     
@@ -296,7 +327,18 @@ def main():
         embed_dim=args.embed_dim,
         num_modes=args.num_modes,
         decoder_depth=args.decoder_depth,
+        pose_mlp_hidden_dim=(
+            release_checkpoint["config"].get("pose_mlp_hidden_dim")
+            if release_checkpoint else None
+        ),
+        layer_norm_elementwise_affine=(
+            release_checkpoint["config"].get("layer_norm_elementwise_affine", False)
+            if release_checkpoint else False
+        ),
     )
+
+    if release_checkpoint:
+        model.load_release_state_dict(release_checkpoint["state_dict"])
     
     checkpoint_callback = ModelCheckpoint(
         dirpath=os.path.join(args.output_dir, args.log_filename),
@@ -321,10 +363,18 @@ def main():
         gradient_clip_algorithm="norm",
     )
     
+    if args.evaluate_only:
+        trainer.validate(
+            model,
+            dataloaders=datamodule.val_dataloader(),
+            ckpt_path=None if release_checkpoint else args.checkpoint_path,
+        )
+        return
+
     trainer.fit(
         model,
         train_dataloaders=datamodule.train_dataloader(),
-        val_dataloaders=datamodule.val_dataloader()
+        val_dataloaders=datamodule.val_dataloader(),
     )
     
     print("Training completed!")

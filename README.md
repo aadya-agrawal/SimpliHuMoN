@@ -1,5 +1,7 @@
 # SimpliHuMoN: Simplified Human Motion Prediction
 
+[Paper](https://arxiv.org/abs/2603.04399)
+
 A simplified implementation for human motion prediction supporting three model types: pose prediction, trajectory prediction, and combined pose+trajectory prediction.
 
 <video src="https://github.com/aadya-agrawal/SimpliHuMoN/raw/main/assets/demo.mp4" controls width="100%"></video>
@@ -26,7 +28,7 @@ SimpliHuMoN provides a clean, streamlined framework for training and evaluating 
 ### Prerequisites
 
 - Python 3.8+
-- PyTorch 1.12+
+- PyTorch 2.0+
 - PyTorch Lightning 1.8+
 - PyTorch Geometric (for some datasets)
 
@@ -41,7 +43,10 @@ pip install numpy
 
 ### Checkpoints
 
-Pre-trained models will be made available soon.
+Pre-trained checkpoints are available from the
+[v1.0 checkpoint release](https://github.com/aadya-agrawal/SimpliHuMoN/releases/tag/v1.0-checkpoints).
+Release weights include their model configuration and can be evaluated by passing
+`--evaluate_only` and `--checkpoint_path`.
 
 ## Project Structure
 
@@ -55,7 +60,6 @@ SimpliHuMoN/
 ├── pose_training.sh          # Pose model training script
 ├── traj_training.sh          # Trajectory model training script
 └── posetraj_training.sh      # Combined model training script
-└── worldpose_processor.py    # Processing script for worldpose data
 ```
 
 ## Model Architectures
@@ -121,6 +125,21 @@ python train.py \
     --on_the_fly_augmentations
 ```
 
+### Checkpoint Evaluation
+
+```bash
+unzip simplihumon_mocap_wide_k6_weights.zip
+
+python train.py \
+   --evaluate_only \
+   --checkpoint_path simplihumon_mocap_wide_k6_weights.pt
+```
+
+The MOCAP-UMPM dataset must be configured in `dataloader.py`. Release weight files
+configure the model automatically, and validation metrics are printed by PyTorch
+Lightning after evaluation. For ordinary Lightning `.ckpt` files, pass the same
+model configuration used during training.
+
 ### Command Line Arguments
 
 | Argument | Description | Default | Choices |
@@ -135,6 +154,8 @@ python train.py \
 | `--batch_size` | Training batch size | `64` | Any positive integer |
 | `--num_epochs` | Number of training epochs | `100` | Any positive integer |
 | `--on_the_fly_augmentations` | Enable data augmentation | `False` | Flag |
+| `--checkpoint_path` | Checkpoint used for evaluation | None | Path |
+| `--evaluate_only` | Validate a checkpoint without training | `False` | Flag |
 
 ## Datasets
 

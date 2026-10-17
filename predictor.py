@@ -30,17 +30,17 @@ class MultiHeadRMSNorm(nn.Module):
         return F.normalize(x, dim = -1) * self.gamma * self.scale
 
 class block(nn.Module):
-    def __init__(self, in_dim):
+    def __init__(self, in_dim, layer_norm_elementwise_affine=False):
         super().__init__()
         num_heads = 4
         assert in_dim % num_heads == 0, 'dim should be divisible by num_heads'
         self.num_heads = num_heads
         self.in_dim = in_dim
         self.head_dim = in_dim // num_heads
-        self.norm_past1 = nn.LayerNorm(in_dim, elementwise_affine= False, eps=1e-6)
-        self.norm_past2 = nn.LayerNorm(in_dim, elementwise_affine= False, eps=1e-6)
-        self.norm_future1 = nn.LayerNorm(in_dim, elementwise_affine= False, eps=1e-6)
-        self.norm_future2 = nn.LayerNorm(in_dim, elementwise_affine= False, eps=1e-6)
+        self.norm_past1 = nn.LayerNorm(in_dim, elementwise_affine=layer_norm_elementwise_affine, eps=1e-6)
+        self.norm_past2 = nn.LayerNorm(in_dim, elementwise_affine=layer_norm_elementwise_affine, eps=1e-6)
+        self.norm_future1 = nn.LayerNorm(in_dim, elementwise_affine=layer_norm_elementwise_affine, eps=1e-6)
+        self.norm_future2 = nn.LayerNorm(in_dim, elementwise_affine=layer_norm_elementwise_affine, eps=1e-6)
         self.qkv_past = nn.Linear(in_dim, in_dim*3)
         self.norm_q_past = MultiHeadRMSNorm(self.head_dim, num_heads)
         self.norm_k_past = MultiHeadRMSNorm(self.head_dim, num_heads)
@@ -103,17 +103,20 @@ class block(nn.Module):
         return past, future
 
 class PoseTrajPredictor(nn.Module):
-    def __init__(self, nblocks=16, embed_dim=48, num_joints=15, input_time=25, num_future_steps=50, num_modes=6):
+    def __init__(self, nblocks=16, embed_dim=48, num_joints=15, input_time=25,
+                 num_future_steps=50, num_modes=6, pose_mlp_hidden_dim=None,
+                 layer_norm_elementwise_affine=False):
         super(PoseTrajPredictor, self).__init__()
         self.output_time = num_future_steps
         self.num_joints = num_joints
         self.num_modes = num_modes
+        pose_mlp_hidden_dim = pose_mlp_hidden_dim or embed_dim*2
 
         self.input_proj = nn.Linear(3, embed_dim, bias=False)
         self.mlp_enc = nn.Sequential(
-            nn.Linear(embed_dim, embed_dim*2),
+            nn.Linear(3*num_joints, pose_mlp_hidden_dim),
             nn.GELU(),
-            nn.Linear(embed_dim*2, embed_dim)
+            nn.Linear(pose_mlp_hidden_dim, embed_dim)
         )
         self.inp_enc = PositionalEncoding(embed_dim, max_len=input_time)
         self.traj_type_emb = nn.Parameter(torch.randn(1, 1, embed_dim))
@@ -123,14 +126,17 @@ class PoseTrajPredictor(nn.Module):
         self.fut_proj = nn.Linear(3, embed_dim, bias=False)
         self.out_enc = PositionalEncoding(embed_dim, max_len=num_future_steps)
 
-        self.layers = nn.ModuleList([block(embed_dim) for _ in range(nblocks)])
+        self.layers = nn.ModuleList([
+            block(embed_dim, layer_norm_elementwise_affine)
+            for _ in range(nblocks)
+        ])
 
         self.multihead_proj = nn.Linear(embed_dim, num_modes*embed_dim)
         self.output_proj = nn.Linear(embed_dim, 3)
         self.mlp_dec = nn.Sequential(
-            nn.Linear(embed_dim, embed_dim*2),
+            nn.Linear(embed_dim, pose_mlp_hidden_dim),
             nn.GELU(),
-            nn.Linear(embed_dim*2, embed_dim)
+            nn.Linear(pose_mlp_hidden_dim, 3*num_joints)
         )
 
     def forward(self, data):
@@ -222,7 +228,7 @@ class PosePredictor(nn.Module):
         self.num_modes = num_modes
 
         self.mlp_enc = nn.Sequential(
-            nn.Linear(embed_dim, embed_dim*2),
+            nn.Linear(3*num_joints, embed_dim*2),
             nn.GELU(),
             nn.Linear(embed_dim*2, embed_dim)
         )
@@ -238,7 +244,7 @@ class PosePredictor(nn.Module):
         self.mlp_dec = nn.Sequential(
             nn.Linear(embed_dim, embed_dim*2),
             nn.GELU(),
-            nn.Linear(embed_dim*2, embed_dim)
+            nn.Linear(embed_dim*2, 3*num_joints)
         )
 
     def forward(self, data):

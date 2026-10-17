@@ -13,7 +13,6 @@ NUM_EPOCHS=300
 LOG_FILENAME="mocap_posetraj_d16_emb48_mm6"
 OUTPUT_DIR="output_logs"
 DATASET_NAME="mocap_umpm"
-NUM_PERSONS=3
 
 echo "=========================================="
 echo "Pose Prediction Training Configuration"
@@ -40,7 +39,6 @@ CMD="$CMD --num_joints $NUM_JOINTS"
 CMD="$CMD --embed_dim $EMBED_DIM"
 CMD="$CMD --batch_size $BATCH_SIZE"
 CMD="$CMD --input_time $INPUT_TIME"
-CMD="$CMD --num_persons $NUM_PERSONS"
 CMD="$CMD --decoder_depth $DECODER_DEPTH"
 CMD="$CMD --dataset_name $DATASET_NAME"
 CMD="$CMD --model_type $MODEL_TYPE"
